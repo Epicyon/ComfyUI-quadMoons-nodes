@@ -338,18 +338,19 @@ class qmKSamplerBatched:
     CATEGORY = "QuadmoonNodes/sampling"
 
     @staticmethod
-    def sample(model, seed, steps, cfg, sampler_name, scheduler, positive, negative, latent_image, denoise):
+    def sample(model, seed, steps, cfg, sampler_name, scheduler, positive, negative, latent_image, noise_mask,denoise):
         disable_noise = False
         start_step = None
         last_step=None
         force_full_denoise=False
         latent = latent_image
         qmlatent_image = latent["samples"]
+        qmlatent_image = comfy.sample.fix_empty_latent_channels(model, qmlatent_image)
         noise = latent["noise"]
 
-        noise_mask = None
-        if "noise_mask" in latent:
-            noise_mask = latent["noise_mask"]
+        # noise_mask = None
+        #if "noise_mask" in latent:
+            #noise_mask = latent["noise_mask"]
 
         callback = latent_preview.prepare_callback(model, steps)
         disable_pbar = not comfy.utils.PROGRESS_BAR_ENABLED
@@ -367,6 +368,7 @@ class qmKSamplerBatched:
         print("batch_noise", batch_noise.size())
         individual_latents = torch.split(latent_image["samples"], 1, dim=0)  # Split along the batch dimension
         individual_noises = torch.split(batch_noise, 1, dim=0)
+        individual_noise_masks = torch.split(latent_image["noise_mask"], 1, dim=0)
         processed_latents = []
 
         # Loop over each latent and process it individually
@@ -377,7 +379,7 @@ class qmKSamplerBatched:
             single_latent_dict = {"samples": single_latent, "noise": individual_noises[i]}
             processed_latent = self.sample(
                 model, seed, steps, cfg, sampler_name, scheduler,
-                positive, negative, single_latent_dict, denoise=denoise
+                positive, negative, single_latent_dict, individual_noise_masks[i], denoise=denoise
             )
             
             # Append the processed latent to the list
