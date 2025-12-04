@@ -183,7 +183,7 @@ class NormalizeHW:
         ) if abs(1 - (nh / nw if nh > nw else nw / nh)) < 0.1 else (nh, nw)
         pr = math.sqrt(p/(nh*nw))
 
-        return round(nh), round(nw), 1/pr
+        return round(nh), round(nw), pr
     
 class ImageToPrompt:
     ### Extract image information from PNG Metadata
@@ -225,14 +225,24 @@ class ImageToPrompt:
             hires_prompt_match = re.search(r"Hires prompt: \"(.+?)\"", parameters, re.DOTALL)
             hires_prompt = hires_prompt_match.group(1).strip() if hires_prompt_match else None
 
-            # Extract other fields
-            seed = re.search(r"Seed: (\d+)", parameters).group(1)
-            steps = re.search(r"Steps: (\d+)", parameters).group(1)
-            cfg_scale = re.search(r"CFG scale: (\d+)", parameters).group(1)
+            # Extract other fields with safe defaults
+            seed_match = re.search(r"Seed: (\d+)", parameters)
+            seed = seed_match.group(1) if seed_match else "0"
+            
+            steps_match = re.search(r"Steps: (\d+)", parameters)
+            steps = steps_match.group(1) if steps_match else "20"
+            
+            cfg_match = re.search(r"CFG scale: ([\d.]+)", parameters)
+            cfg_scale = cfg_match.group(1) if cfg_match else "7.0"
+            
             image_size = re.search(r"Size:\s*(\d+)x(\d+)", parameters)
             if image_size:
                 width, height = image_size.groups()
-            clip_skip = re.search(r"Clip skip: (\d+)", parameters).group(1)
+            else:
+                width, height = "512", "512"
+            
+            clip_skip_match = re.search(r"Clip skip: (\d+)", parameters)
+            clip_skip = clip_skip_match.group(1) if clip_skip_match else "1"
 
             # ("POSITIVE", "NEGATIVE", "HI-RES_PROMPT", "SEED", "STEPS", "CFG", "HEIGHT", "WIDTH", "CLIP_SKIP",)
             return(prompt, negative_prompt, hires_prompt, int(seed), int(steps), float(cfg_scale), int(height), int(width), -int(clip_skip),)
