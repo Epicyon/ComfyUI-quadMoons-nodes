@@ -50,7 +50,7 @@ class Upscaler(nn.Module):
 		return self.sequential(x)
 
 
-class LatentUpscaler:
+class QuadmoonLatentUpscaler:
 	def __init__(self):
 		pass
 
@@ -86,9 +86,9 @@ class LatentUpscaler:
 			return ({"samples": lt, "noise_mask": mask},)
 		return ({"samples": lt},)
 NODE_CLASS_MAPPINGS = {
-	"LatentUpscaler": LatentUpscaler,
+	"QuadmoonLatentUpscaler": QuadmoonLatentUpscaler,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "LatentUpscaler": "EFF_C Latent Upscaler"
+    "QuadmoonLatentUpscaler": "EFF_C Latent Upscaler"
 }		

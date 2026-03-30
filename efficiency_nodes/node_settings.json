@@ -1,5 +1,5 @@
 {
-    "Efficient Loader": {
+    "Quadmoon Efficient Loader": {
         "model_cache": {
             "vae": 1,
             "ckpt": 1,
@@ -7,7 +7,7 @@
             "refn": 1
         }
     },
-    "XY Plot": {
+    "Quadmoon XY Plot": {
         "model_cache": {
             "vae": 5,
             "ckpt": 5,

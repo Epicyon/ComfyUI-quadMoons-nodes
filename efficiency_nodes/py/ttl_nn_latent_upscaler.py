@@ -251,7 +251,7 @@ class LatentResizer(nn.Module):
         return x
 
 ########################################################
-class NNLatentUpscale:
+class QuadmoonNNLatentUpscale:
     """
     Upscales SDXL latent using neural network
     """
@@ -313,7 +313,7 @@ class NNLatentUpscale:
         return ({"samples": latent_out},)
 
 NODE_CLASS_MAPPINGS = {
-    "NNLatentUpscale": NNLatentUpscale
+    "QuadmoonNNLatentUpscale": QuadmoonNNLatentUpscale
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {

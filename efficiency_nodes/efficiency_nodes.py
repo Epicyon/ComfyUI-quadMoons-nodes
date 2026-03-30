@@ -18,6 +18,7 @@ import subprocess
 import json
 import psutil
 
+from "D:/Epic/code/ComfyUI" 
 from comfy_extras.nodes_align_your_steps import AlignYourStepsScheduler
 
 # Get the absolute path of various directories
@@ -99,8 +100,8 @@ def encode_prompts(positive_prompt, negative_prompt, token_normalization, weight
         return positive_encoded, negative_encoded, clip, refiner_positive_encoded, refiner_negative_encoded, refiner_clip
 
 ########################################################################################################################
-# TSC Efficient Loader
-class TSC_EfficientLoader:
+# TSC Quadmoon Efficient Loader
+class QuadMoonTSC_KSamplerEfficientLoader:
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -140,7 +141,7 @@ class TSC_EfficientLoader:
         latent = torch.zeros([batch_size, 4, empty_latent_height // 8, empty_latent_width // 8]).cpu()
 
         # Retrieve cache numbers
-        vae_cache, ckpt_cache, lora_cache, refn_cache = get_cache_numbers("Efficient Loader")
+        vae_cache, ckpt_cache, lora_cache, refn_cache = get_cache_numbers("Quadmoon Efficient Loader")
 
         if lora_name != "None" or lora_stack:
             # Initialize an empty list to store LoRa parameters.
@@ -180,16 +181,16 @@ class TSC_EfficientLoader:
                            refiner_clip, refiner_clip_skip, ascore, loader_type == "sdxl",
                            empty_latent_width, empty_latent_height)
 
-        # Apply ControlNet Stack if given
+        # Quadmoon Apply ControlNet Stack if given
         if cnet_stack:
-            controlnet_conditioning = TSC_Apply_ControlNet_Stack().apply_cnet_stack(positive_encoded, negative_encoded, cnet_stack)
+            controlnet_conditioning = QuadMoonTSC_KSamplerApply_ControlNet_Stack().apply_cnet_stack(positive_encoded, negative_encoded, cnet_stack)
             positive_encoded, negative_encoded = controlnet_conditioning[0], controlnet_conditioning[1]
 
         # Check for custom VAE
         if vae_name != "Baked VAE":
             vae = load_vae(vae_name, my_unique_id, cache=vae_cache, cache_overwrite=True)
 
-        # Data for XY Plot
+        # Data for Quadmoon XY Plot
         dependencies = (vae_name, ckpt_name, clip, clip_skip, refiner_name, refiner_clip, refiner_clip_skip,
                         positive, negative, token_normalization, weight_interpretation, ascore,
                         empty_latent_width, empty_latent_height, lora_params, cnet_stack)
@@ -205,8 +206,8 @@ class TSC_EfficientLoader:
                      refiner_positive_encoded, refiner_negative_encoded), {"samples":latent}, vae, dependencies,)
 
 #=======================================================================================================================
-# TSC Efficient Loader SDXL
-class TSC_EfficientLoaderSDXL(TSC_EfficientLoader):
+# TSC Quadmoon Efficient Loader SDXL
+class QuadMoonTSC_KSamplerEfficientLoaderSDXL(TSC_EfficientLoader):
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -246,8 +247,8 @@ class TSC_EfficientLoaderSDXL(TSC_EfficientLoader):
                         ascore=(positive_ascore, negative_ascore), prompt=prompt, my_unique_id=my_unique_id, loader_type="sdxl")
 
 #=======================================================================================================================
-# TSC Unpack SDXL Tuple
-class TSC_Unpack_SDXL_Tuple:
+# TSC Quadmoon Unpack SDXL Tuple
+class QuadMoonTSC_KSamplerUnpack_SDXL_Tuple:
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -264,8 +265,8 @@ class TSC_Unpack_SDXL_Tuple:
                 sdxl_tuple[4],sdxl_tuple[5],sdxl_tuple[6],sdxl_tuple[7],)
 
 # =======================================================================================================================
-# TSC Pack SDXL Tuple
-class TSC_Pack_SDXL_Tuple:
+# TSC Quadmoon Pack SDXL Tuple
+class QuadMoonTSC_KSamplerPack_SDXL_Tuple:
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -289,8 +290,8 @@ class TSC_Pack_SDXL_Tuple:
                  refiner_model, refiner_clip, refiner_positive, refiner_negative),)
 
 ########################################################################################################################
-# TSC LoRA Stacker
-class TSC_LoRA_Stacker:
+# TSC Quadmoon LoRA Stacker
+class QuadMoonTSC_KSamplerLoRA_Stacker:
     modes = ["simple", "advanced"]
 
     @classmethod
@@ -342,8 +343,8 @@ class TSC_LoRA_Stacker:
         return (loras,)
 
 #=======================================================================================================================
-# TSC Control Net Stacker
-class TSC_Control_Net_Stacker:
+# TSC Quadmoon Control Net Stacker
+class QuadMoonTSC_KSamplerControl_Net_Stacker:
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -370,8 +371,8 @@ class TSC_Control_Net_Stacker:
         return (cnet_stack,)
 
 #=======================================================================================================================
-# TSC Apply ControlNet Stack
-class TSC_Apply_ControlNet_Stack:
+# TSC Quadmoon Apply ControlNet Stack
+class QuadMoonTSC_KSamplerApply_ControlNet_Stack:
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -399,8 +400,8 @@ class TSC_Apply_ControlNet_Stack:
 
 
 ########################################################################################################################
-# TSC KSampler (Efficient)
-class TSC_KSampler:
+# TSC Quadmoon KSampler (Efficient)
+class QuadmoonTSC_KSampler:
     empty_image = pil2tensor(Image.new('RGBA', (1, 1), (0, 0, 0, 0)))
 
     @classmethod
@@ -444,7 +445,7 @@ class TSC_KSampler:
             vae_decode = "false"
 
         #---------------------------------------------------------------------------------------------------------------
-        # Unpack SDXL Tuple embedded in the 'model' channel
+        # Quadmoon Unpack SDXL Tuple embedded in the 'model' channel
         if sampler_type == "sdxl":
             sdxl_tuple = model
             model, _, positive, negative, refiner_model, _, refiner_positive, refiner_negative = sdxl_tuple
@@ -691,7 +692,7 @@ class TSC_KSampler:
                     if preprocessor_imgs and upscale_type == "latent":
                         if keys_exist_in_script("xyplot"):
                             print(
-                                f"{warning('HighRes-Fix Warning:')} Preprocessor images auto-disabled when XY Plotting.")
+                                f"{warning('HighRes-Fix Warning:')} Preprocessor images auto-disabled when Quadmoon XY Plotting.")
                         else:
                             # Resize cnet_imgs if necessary and stack
                             if images.shape[1:3] != cnet_imgs.shape[1:3]:  # comparing height and width
@@ -708,7 +709,7 @@ class TSC_KSampler:
 
                 # Define a dummy output image
                 if images is None and vae_decode == "false":
-                    images = TSC_KSampler.empty_image
+                    images = QuadmoonTSC_KSampler.empty_image
 
             finally:
                 # Restore global changes
@@ -725,7 +726,7 @@ class TSC_KSampler:
         globals_cleanup(prompt)
 
         # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        # If not XY Plotting
+        # If not Quadmoon XY Plotting
         if not keys_exist_in_script("xyplot"):
 
             # Process latent image
@@ -745,23 +746,23 @@ class TSC_KSampler:
                 return {"ui": preview, "result": result}
 
         # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        # If XY Plot
+        # If Quadmoon XY Plot
         elif keys_exist_in_script("xyplot"):
 
             # If no vae connected, throw errors
             if vae == (None,):
-                print(f"{error('KSampler(Efficient) Error:')} VAE input must be connected in order to use the XY Plot script.")
+                print(f"{error('KSampler(Efficient) Error:')} VAE input must be connected in order to use the Quadmoon XY Plot script.")
 
                 return {"ui": {"images": list()},
-                        "result": (model, positive, negative, latent_image, vae, TSC_KSampler.empty_image,)}
+                        "result": (model, positive, negative, latent_image, vae, QuadmoonTSC_KSampler.empty_image,)}
 
             # If vae_decode is not set to true, print message that changing it to true
             if "true" not in vae_decode:
                 print(f"{warning('KSampler(Efficient) Warning:')} VAE decoding must be set to \'true\'"
-                    " for the XY Plot script, proceeding as if \'true\'.\n")
+                    " for the Quadmoon XY Plot script, proceeding as if \'true\'.\n")
 
             #___________________________________________________________________________________________________________
-            # Initialize, unpack, and clean variables for the XY Plot script
+            # Initialize, unpack, and clean variables for the Quadmoon XY Plot script
             vae_name = None
             ckpt_name = None
             clip = None
@@ -803,16 +804,16 @@ class TSC_KSampler:
                 "regular": {
                     "disallowed": ["AddNoise", "ReturnNoise", "StartStep", "EndStep", "RefineStep",
                                    "Refiner", "Refiner On/Off", "AScore+", "AScore-"],
-                    "name": "KSampler (Efficient)"
+                    "name": "Quadmoon KSampler (Efficient)"
                 },
                 "advanced": {
                     "disallowed": ["RefineStep", "Denoise", "RefineStep", "Refiner", "Refiner On/Off",
                                    "AScore+", "AScore-"],
-                    "name": "KSampler Adv. (Efficient)"
+                    "name": "Quadmoon KSampler Adv. (Efficient)"
                 },
                 "sdxl": {
                     "disallowed": ["AddNoise", "EndStep", "Denoise"],
-                    "name": "KSampler SDXL (Eff.)"
+                    "name": "Quadmoon KSampler SDXL (Eff.)"
                 }
             }
 
@@ -843,11 +844,11 @@ class TSC_KSampler:
                 suggested_ksampler = suggest_ksampler(X_type, Y_type, sampler_type)
 
                 print(f"{error_prefix} Invalid value for {' and '.join(failed_type)}. "
-                    f"Use {suggested_ksampler} for this XY Plot type."
+                    f"Use {suggested_ksampler} for this Quadmoon XY Plot type."
                     f"\nDisallowed XY_types for this KSampler are: {', '.join(disallowed_XY_types)}.")
 
                 return {"ui": {"images": list()},
-                    "result": (model, positive, negative, latent_image, vae, TSC_KSampler.empty_image,)}
+                    "result": (model, positive, negative, latent_image, vae, QuadmoonTSC_KSampler.empty_image,)}
 
             #_______________________________________________________________________________________________________
             # Unpack Effficient Loader dependencies
@@ -857,7 +858,7 @@ class TSC_KSampler:
                     empty_latent_width, empty_latent_height, lora_stack, cnet_stack = dependencies
 
             #_______________________________________________________________________________________________________
-            # Printout XY Plot values to be processed
+            # Printout Quadmoon XY Plot values to be processed
             def process_xy_for_print(value, replacement, type_):
 
                 if type_ == "Seeds++ Batch" and isinstance(value, list):
@@ -920,7 +921,7 @@ class TSC_KSampler:
             Y_value_processed = process_xy_for_print(Y_value, replacement_Y, Y_type)
 
             print(info("-" * 40))
-            print(info('XY Plot Script Inputs:'))
+            print(info('Quadmoon XY Plot Script Inputs:'))
             print(info(f"(X) {X_type}:"))
             for item in X_value_processed:
                 print(info(f"    {item}"))
@@ -937,7 +938,7 @@ class TSC_KSampler:
                 vae_cache = ckpt_cache = lora_cache = refn_cache = 1
             else:
                 # Retrieve cache numbers
-                vae_cache, ckpt_cache, lora_cache, refn_cache = get_cache_numbers("XY Plot")
+                vae_cache, ckpt_cache, lora_cache, refn_cache = get_cache_numbers("Quadmoon XY Plot")
             # Pack cache numbers in a tuple
             cache = (vae_cache, ckpt_cache, lora_cache, refn_cache)
 
@@ -1376,7 +1377,7 @@ class TSC_KSampler:
                 if (X_type == "Checkpoint" and index == 0 and Y_type != "LoRA"):
                     if lora_stack is None:
                         model, clip, _ = load_checkpoint(ckpt_name, xyplot_id, cache=cache[1])
-                    else: # Load Efficient Loader LoRA
+                    else: # Load Quadmoon Efficient Loader LoRA
                         model, clip = load_lora(lora_stack, ckpt_name, xyplot_id,
                                                 cache=None, ckpt_cache=cache[1])
                     encode = True
@@ -1418,9 +1419,9 @@ class TSC_KSampler:
                         encode_prompts(positive_prompt, negative_prompt, token_normalization, weight_interpretation,
                                        clip, clip_skip, refiner_clip, refiner_clip_skip, ascore, sampler_type == "sdxl",
                                        empty_latent_width, empty_latent_height, return_type="base")
-                    # Apply ControlNet Stack if given
+                    # Quadmoon Apply ControlNet Stack if given
                     if cnet_stack:
-                        controlnet_conditioning = TSC_Apply_ControlNet_Stack().apply_cnet_stack(positive, negative, cnet_stack)
+                        controlnet_conditioning = QuadMoonTSC_KSamplerApply_ControlNet_Stack().apply_cnet_stack(positive, negative, cnet_stack)
                         positive, negative = controlnet_conditioning[0], controlnet_conditioning[1]
 
                 if encode_refiner == True:
@@ -1480,7 +1481,7 @@ class TSC_KSampler:
                 return latent_list, image_tensor_list, image_pil_list
 
             # ______________________________________________________________________________________________________
-            # The below section is the heart of the XY Plot image generation
+            # The below section is the heart of the Quadmoon XY Plot image generation
 
              # Initiate Plot label text variables X/Y_label
             X_label = []
@@ -1614,7 +1615,7 @@ class TSC_KSampler:
                                      num_rows, num_cols, i_height, i_width):
 
                 print("-" * 40)  # Print an empty line followed by a separator line
-                print(f"{xyplot_message('XY Plot Results:')}")
+                print(f"{xyplot_message('Quadmoon XY Plot Results:')}")
 
                 def get_vae_name(X_type, Y_type, X_value, Y_value, vae_name):
                     if X_type == "VAE":
@@ -2001,7 +2002,7 @@ class TSC_KSampler:
             # Extract final image dimensions
             i_height, i_width = image_tensor_list[0].shape[1], image_tensor_list[0].shape[2]
 
-            # Print XY Plot Results
+            # Print Quadmoon XY Plot Results
             print_plot_variables(X_type, Y_type, X_value, Y_value, add_noise, seed,  steps, start_at_step, end_at_step,
                                  return_with_leftover_noise, cfg, sampler_name, scheduler, denoise, vae_name, ckpt_name,
                                  clip_skip, refiner_name, refiner_clip_skip, ascore, lora_stack, cnet_stack,
@@ -2186,7 +2187,7 @@ class TSC_KSampler:
 
 #=======================================================================================================================
 # TSC KSampler Adv (Efficient)
-class TSC_KSamplerAdvanced(TSC_KSampler):
+class QuadmoonTSC_KSamplerAdvanced(QuadmoonTSC_KSampler):
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -2229,7 +2230,7 @@ class TSC_KSamplerAdvanced(TSC_KSampler):
 
 #=======================================================================================================================
 # TSC KSampler SDXL (Efficient)
-class TSC_KSamplerSDXL(TSC_KSampler):
+class QuadmoonTSC_KSamplerSDXL(QuadmoonTSC_KSampler):
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -2269,9 +2270,9 @@ class TSC_KSamplerSDXL(TSC_KSampler):
                return_with_leftover_noise=None,sampler_type="sdxl")
 
 ########################################################################################################################
-# Common XY Plot Functions/Variables
-XYPLOT_LIM = 50 #XY Plot default axis size limit
-XYPLOT_DEF = 3  #XY Plot default batch count
+# Common Quadmoon XY Plot Functions/Variables
+XYPLOT_LIM = 50 #Quadmoon XY Plot default axis size limit
+XYPLOT_DEF = 3  #Quadmoon XY Plot default batch count
 CKPT_EXTENSIONS = LORA_EXTENSIONS = ['.safetensors', '.ckpt']
 VAE_EXTENSIONS = ['.safetensors', '.ckpt', '.pt']
 try:
@@ -2324,8 +2325,8 @@ def print_xy_values(xy_type, xy_value, xy_name):
     print("============================")
 
 #=======================================================================================================================
-# TSC XY Plot
-class TSC_XYplot:
+# TSC Quadmoon XY Plot
+class QuadMoonTSC_KSamplerXYplot:
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -2365,7 +2366,7 @@ class TSC_XYplot:
         # If types are the same exit. If one isn't "Nothing", print error
         if X_type != "XY_Capsule" and (X_type == Y_type) and X_type not in ["Positive Prompt S/R", "Negative Prompt S/R"]:
             if X_type != "Nothing":
-                print(f"{error('XY Plot Error:')} X and Y input types must be different.")
+                print(f"{error('Quadmoon XY Plot Error:')} X and Y input types must be different.")
             return (None,)
 
         # Check that dependencies are connected for specific plot types
@@ -2380,7 +2381,7 @@ class TSC_XYplot:
 
         if X_type in encode_types or Y_type in encode_types:
             if dependencies is None:  # Not connected
-                print(f"{error('XY Plot Error:')} The dependencies input must be connected for certain plot types.")
+                print(f"{error('Quadmoon XY Plot Error:')} The dependencies input must be connected for certain plot types.")
                 # Return None
                 return (None,)
 
@@ -2388,7 +2389,7 @@ class TSC_XYplot:
         lora_types = {"LoRA Batch", "LoRA Wt", "LoRA MStr", "LoRA CStr"}
         if (X_type in lora_types and Y_type not in lora_types) or (Y_type in lora_types and X_type not in lora_types):
             print(
-                f"{error('XY Plot Error:')} Both X and Y must be connected to use the 'LoRA Plot' node.")
+                f"{error('Quadmoon XY Plot Error:')} Both X and Y must be connected to use the 'LoRA Plot' node.")
             return (None,)
 
         # Clean Schedulers from Sampler data (if other type is Scheduler)
@@ -2431,8 +2432,8 @@ class TSC_XYplot:
         return (script,)
 
 #=======================================================================================================================
-# TSC XY Plot: Seeds Values
-class TSC_XYplot_SeedsBatch:
+# TSC Quadmoon XY Plot: Seeds Values
+class QuadMoonTSC_KSamplerXYplot_SeedsBatch:
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -2453,8 +2454,8 @@ class TSC_XYplot_SeedsBatch:
         return ((xy_type, xy_value),)
 
 #=======================================================================================================================
-# TSC XY Plot: Add/Return Noise
-class TSC_XYplot_AddReturnNoise:
+# TSC Quadmoon XY Plot: Add/Return Noise
+class QuadMoonTSC_KSamplerXYplot_AddReturnNoise:
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -2477,8 +2478,8 @@ class TSC_XYplot_AddReturnNoise:
         return ((xy_type, xy_value),)
 
 #=======================================================================================================================
-# TSC XY Plot: Step Values
-class TSC_XYplot_Steps:
+# TSC Quadmoon XY Plot: Step Values
+class QuadMoonTSC_KSamplerXYplot_Steps:
     parameters = ["steps","start_at_step", "end_at_step", "refine_at_step"]
     @classmethod
     def INPUT_TYPES(cls):
@@ -2526,8 +2527,8 @@ class TSC_XYplot_Steps:
         return ((xy_type, xy_value),) if xy_value else (None,)
 
 #=======================================================================================================================
-# TSC XY Plot: CFG Values
-class TSC_XYplot_CFG:
+# TSC Quadmoon XY Plot: CFG Values
+class QuadMoonTSC_KSamplerXYplot_CFG:
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -2550,8 +2551,8 @@ class TSC_XYplot_CFG:
         return ((xy_type, xy_value),) if xy_value else (None,)
 
 #=======================================================================================================================
-# TSC XY Plot: Sampler & Scheduler Values
-class TSC_XYplot_Sampler_Scheduler:
+# TSC Quadmoon XY Plot: Sampler & Scheduler Values
+class QuadMoonTSC_KSamplerXYplot_Sampler_Scheduler:
     parameters = ["sampler", "scheduler", "sampler & scheduler"]
 
     @classmethod
@@ -2594,8 +2595,8 @@ class TSC_XYplot_Sampler_Scheduler:
         return ((xy_type, xy_value),) if xy_value else (None,)
 
 #=======================================================================================================================
-# TSC XY Plot: Denoise Values
-class TSC_XYplot_Denoise:
+# TSC Quadmoon XY Plot: Denoise Values
+class QuadMoonTSC_KSamplerXYplot_Denoise:
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -2618,8 +2619,8 @@ class TSC_XYplot_Denoise:
         return ((xy_type, xy_value),) if xy_value else (None,)
 
 #=======================================================================================================================
-# TSC XY Plot: VAE Values
-class TSC_XYplot_VAE:
+# TSC Quadmoon XY Plot: VAE Values
+class QuadMoonTSC_KSamplerXYplot_VAE:
 
     modes = ["VAE Names", "VAE Batch"]
 
@@ -2665,7 +2666,7 @@ class TSC_XYplot_VAE:
                 vaes = get_batch_files(batch_path, VAE_EXTENSIONS, include_subdirs=subdirectories)
 
                 if not vaes:
-                    print(f"{error('XY Plot Error:')} No VAE files found.")
+                    print(f"{error('Quadmoon XY Plot Error:')} No VAE files found.")
                     return (None,)
 
                 if batch_sort == "ascending":
@@ -2680,14 +2681,14 @@ class TSC_XYplot_VAE:
                     xy_value = xy_value[:batch_max]
 
             except Exception as e:
-                print(f"{error('XY Plot Error:')} {e}")
+                print(f"{error('Quadmoon XY Plot Error:')} {e}")
                 return (None,)
 
         return ((xy_type, xy_value),) if xy_value else (None,)
 
 #=======================================================================================================================
-# TSC XY Plot: Prompt S/R
-class TSC_XYplot_PromptSR:
+# TSC Quadmoon XY Plot: Prompt S/R
+class QuadMoonTSC_KSamplerXYplot_PromptSR:
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -2730,8 +2731,8 @@ class TSC_XYplot_PromptSR:
         return ((xy_type, xy_values),)
 
 #=======================================================================================================================
-# TSC XY Plot: Aesthetic Score
-class TSC_XYplot_AScore:
+# TSC Quadmoon XY Plot: Aesthetic Score
+class QuadMoonTSC_KSamplerXYplot_AScore:
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -2758,8 +2759,8 @@ class TSC_XYplot_AScore:
         return ((xy_type, xy_value),) if xy_value else (None,)
 
 #=======================================================================================================================
-# TSC XY Plot: Refiner On/Off
-class TSC_XYplot_Refiner_OnOff:
+# TSC Quadmoon XY Plot: Refiner On/Off
+class QuadMoonTSC_KSamplerXYplot_Refiner_OnOff:
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -2778,8 +2779,8 @@ class TSC_XYplot_Refiner_OnOff:
         return ((xy_type, xy_value),)
 
 #=======================================================================================================================
-# TSC XY Plot: Clip Skip
-class TSC_XYplot_ClipSkip:
+# TSC Quadmoon XY Plot: Clip Skip
+class QuadMoonTSC_KSamplerXYplot_ClipSkip:
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -2806,8 +2807,8 @@ class TSC_XYplot_ClipSkip:
         return ((xy_type, xy_value),) if xy_value else (None,)
 
 #=======================================================================================================================
-# TSC XY Plot: Checkpoint Values
-class TSC_XYplot_Checkpoint:
+# TSC Quadmoon XY Plot: Checkpoint Values
+class QuadMoonTSC_KSamplerXYplot_Checkpoint:
     modes = ["Ckpt Names", "Ckpt Names+ClipSkip", "Ckpt Names+ClipSkip+VAE", "Checkpoint Batch"]
     @classmethod
     def INPUT_TYPES(cls):
@@ -2866,7 +2867,7 @@ class TSC_XYplot_Checkpoint:
                 ckpts = get_batch_files(batch_path, CKPT_EXTENSIONS, include_subdirs=subdirectories)
 
                 if not ckpts:
-                    print(f"{error('XY Plot Error:')} No Checkpoint files found.")
+                    print(f"{error('Quadmoon XY Plot Error:')} No Checkpoint files found.")
                     return (None,)
 
                 if batch_sort == "ascending":
@@ -2881,14 +2882,14 @@ class TSC_XYplot_Checkpoint:
                     xy_value = xy_value[:batch_max]
 
             except Exception as e:
-                print(f"{error('XY Plot Error:')} {e}")
+                print(f"{error('Quadmoon XY Plot Error:')} {e}")
                 return (None,)
 
         return ((xy_type, xy_value),) if xy_value else (None,)
 
 #=======================================================================================================================
-# TSC XY Plot: LoRA Batch (DISABLED)
-class TSC_XYplot_LoRA_Batch:
+# TSC Quadmoon XY Plot: LoRA Batch (DISABLED)
+class QuadMoonTSC_KSamplerXYplot_LoRA_Batch:
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -2917,7 +2918,7 @@ class TSC_XYplot_LoRA_Batch:
         loras = get_batch_files(batch_path, LORA_EXTENSIONS, include_subdirs=subdirectories)
 
         if not loras:
-            print(f"{error('XY Plot Error:')} No LoRA files found.")
+            print(f"{error('Quadmoon XY Plot Error:')} No LoRA files found.")
             return (None,)
 
         if batch_sort == "ascending":
@@ -2934,8 +2935,8 @@ class TSC_XYplot_LoRA_Batch:
         return ((xy_type, xy_value),) if xy_value else (None,)
 
 #=======================================================================================================================
-# TSC XY Plot: LoRA Values
-class TSC_XYplot_LoRA:
+# TSC Quadmoon XY Plot: LoRA Values
+class QuadMoonTSC_KSamplerXYplot_LoRA:
     modes = ["LoRA Names", "LoRA Names+Weights", "LoRA Batch"]
 
     @classmethod
@@ -2971,7 +2972,7 @@ class TSC_XYplot_LoRA:
     CATEGORY = "Efficiency Nodes/XY Inputs"
 
     def __init__(self):
-        self.lora_batch = TSC_XYplot_LoRA_Batch()
+        self.lora_batch = QuadMoonTSC_KSamplerXYplot_LoRA_Batch()
 
     def xy_value(self, input_mode, batch_path, subdirectories, batch_sort, batch_max, lora_count, model_strength,
                  clip_strength, lora_stack=None, **kwargs):
@@ -3002,13 +3003,13 @@ class TSC_XYplot_LoRA:
                 result = self.lora_batch.xy_value(batch_path, subdirectories, batch_sort, model_strength,
                                                   clip_strength, batch_max, lora_stack)
             except Exception as e:
-                print(f"{error('XY Plot Error:')} {e}")
+                print(f"{error('Quadmoon XY Plot Error:')} {e}")
 
         return result
 
 #=======================================================================================================================
-# TSC XY Plot: LoRA Plot
-class TSC_XYplot_LoRA_Plot:
+# TSC Quadmoon XY Plot: LoRA Plot
+class QuadMoonTSC_KSamplerXYplot_LoRA_Plot:
 
     modes = ["X: LoRA Batch, Y: LoRA Weight",
              "X: LoRA Batch, Y: Model Strength",
@@ -3042,7 +3043,7 @@ class TSC_XYplot_LoRA_Plot:
     CATEGORY = "Efficiency Nodes/XY Inputs"
 
     def __init__(self):
-        self.lora_batch = TSC_XYplot_LoRA_Batch()
+        self.lora_batch = QuadMoonTSC_KSamplerXYplot_LoRA_Batch()
 
     def generate_values(self, mode, X_or_Y, *args, **kwargs):
         result = self.lora_batch.xy_value(*args, **kwargs)
@@ -3091,7 +3092,7 @@ class TSC_XYplot_LoRA_Plot:
                 x_value = self.lora_batch.xy_value(X_batch_path, X_subdirectories, X_batch_sort,
                                                    model_strength, clip_strength, X_batch_count, lora_stack)[0][1]
             except Exception as e:
-                print(f"{error('XY Plot Error:')} {e}")
+                print(f"{error('Quadmoon XY Plot Error:')} {e}")
                 return (None,)
             x_type = "LoRA Batch"
         elif "X: Model Strength" in input_mode:
@@ -3114,8 +3115,8 @@ class TSC_XYplot_LoRA_Plot:
         return ((x_type, x_value), (y_type, y_value))
 
 #=======================================================================================================================
-# TSC XY Plot: LoRA Stacks
-class TSC_XYplot_LoRA_Stacks:
+# TSC Quadmoon XY Plot: LoRA Stacks
+class QuadMoonTSC_KSamplerXYplot_LoRA_Stacks:
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -3143,8 +3144,8 @@ class TSC_XYplot_LoRA_Stacks:
             return ((xy_type, xy_value),)
 
 #=======================================================================================================================
-# TSC XY Plot: Control Net Strength (DISABLED)
-class TSC_XYplot_Control_Net_Strength:
+# TSC Quadmoon XY Plot: Control Net Strength (DISABLED)
+class QuadMoonTSC_KSamplerXYplot_Control_Net_Strength:
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -3197,8 +3198,8 @@ class TSC_XYplot_Control_Net_Strength:
         return ((xy_type, xy_value),)
 
 #=======================================================================================================================
-# TSC XY Plot: Control Net Start % (DISABLED)
-class TSC_XYplot_Control_Net_Start:
+# TSC Quadmoon XY Plot: Control Net Start % (DISABLED)
+class QuadMoonTSC_KSamplerXYplot_Control_Net_Start:
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -3251,8 +3252,8 @@ class TSC_XYplot_Control_Net_Start:
         return ((xy_type, xy_value),)
 
 #=======================================================================================================================
-# TSC XY Plot: Control Net End % (DISABLED)
-class TSC_XYplot_Control_Net_End:
+# TSC Quadmoon XY Plot: Control Net End % (DISABLED)
+class QuadMoonTSC_KSamplerXYplot_Control_Net_End:
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -3306,8 +3307,8 @@ class TSC_XYplot_Control_Net_End:
 
 
 # =======================================================================================================================
-# TSC XY Plot: Control Net
-class TSC_XYplot_Control_Net(TSC_XYplot_Control_Net_Strength, TSC_XYplot_Control_Net_Start, TSC_XYplot_Control_Net_End):
+# TSC Quadmoon XY Plot: Control Net
+class QuadMoonTSC_KSamplerXYplot_Control_Net(TSC_XYplot_Control_Net_Strength, QuadMoonTSC_KSamplerXYplot_Control_Net_Start, QuadMoonTSC_KSamplerXYplot_Control_Net_End):
     parameters = ["strength", "start_percent", "end_percent"]
     @classmethod
     def INPUT_TYPES(cls):
@@ -3339,18 +3340,18 @@ class TSC_XYplot_Control_Net(TSC_XYplot_Control_Net_Strength, TSC_XYplot_Control
                  last_start_percent, first_end_percent, last_end_percent, strength, start_percent, end_percent, cnet_stack=None):
 
         if target_parameter == "strength":
-            return TSC_XYplot_Control_Net_Strength.xy_value(self, control_net, image, batch_count, first_strength,
+            return QuadMoonTSC_KSamplerXYplot_Control_Net_Strength.xy_value(self, control_net, image, batch_count, first_strength,
                                                             last_strength, start_percent, end_percent, cnet_stack=cnet_stack)
         elif target_parameter == "start_percent":
-            return TSC_XYplot_Control_Net_Start.xy_value(self, control_net, image, batch_count, first_start_percent,
+            return QuadMoonTSC_KSamplerXYplot_Control_Net_Start.xy_value(self, control_net, image, batch_count, first_start_percent,
                                                          last_start_percent, strength, end_percent, cnet_stack=cnet_stack)
         elif target_parameter == "end_percent":
-            return TSC_XYplot_Control_Net_End.xy_value(self, control_net, image, batch_count, first_end_percent,
+            return QuadMoonTSC_KSamplerXYplot_Control_Net_End.xy_value(self, control_net, image, batch_count, first_end_percent,
                                                        last_end_percent, strength, start_percent, cnet_stack=cnet_stack)
 
 #=======================================================================================================================
-# TSC XY Plot: Control Net Plot
-class TSC_XYplot_Control_Net_Plot:
+# TSC Quadmoon XY Plot: Control Net Plot
+class QuadMoonTSC_KSamplerXYplot_Control_Net_Plot:
 
     plot_types = ["X: Strength, Y: Start%",
              "X: Strength, Y: End%",
@@ -3463,8 +3464,8 @@ class TSC_XYplot_Control_Net_Plot:
         return (x_entry, y_entry,)
 
 #=======================================================================================================================
-# TSC XY Plot: Manual Entry Notes
-class TSC_XYplot_Manual_XY_Entry_Info:
+# TSC Quadmoon XY Plot: Manual Entry Notes
+class QuadMoonTSC_KSamplerXYplot_Manual_XY_Entry_Info:
 
     syntax = "(X/Y_types)     (X/Y_values)\n" \
                "Seeds++ Batch   batch_count\n" \
@@ -3509,8 +3510,8 @@ class TSC_XYplot_Manual_XY_Entry_Info:
 
 
 #=======================================================================================================================
-# TSC XY Plot: Manual Entry
-class TSC_XYplot_Manual_XY_Entry:
+# TSC Quadmoon XY Plot: Manual Entry
+class QuadMoonTSC_KSamplerXYplot_Manual_XY_Entry:
 
     plot_types = ["Nothing", "Seeds++ Batch", "Steps", "StartStep", "EndStep", "CFG Scale", "Sampler", "Scheduler",
                   "Denoise", "VAE", "Positive Prompt S/R", "Negative Prompt S/R", "Checkpoint", "Clip Skip", "LoRA"]
@@ -3564,10 +3565,10 @@ class TSC_XYplot_Manual_XY_Entry:
                     elif x > bounds["Seeds++ Batch"]["max"]:
                         x = bounds["Seeds++ Batch"]["max"]
                 except ValueError:
-                    print(f"\033[31mXY Plot Error:\033[0m '{value}' is not a valid batch count.")
+                    print(f"\033[31mQuadmoon XY Plot Error:\033[0m '{value}' is not a valid batch count.")
                     return None
                 if float(value) != x:
-                    print(f"\033[31mmXY Plot Error:\033[0m '{value}' is not a valid batch count.")
+                    print(f"\033[31mmQuadmoon XY Plot Error:\033[0m '{value}' is not a valid batch count.")
                     return None
                 return x
             # ________________________________________________________________________
@@ -3582,7 +3583,7 @@ class TSC_XYplot_Manual_XY_Entry:
                     return x
                 except ValueError:
                     print(
-                        f"\033[31mXY Plot Error:\033[0m '{value}' is not a valid Step count.")
+                        f"\033[31mQuadmoon XY Plot Error:\033[0m '{value}' is not a valid Step count.")
                     return None
             # __________________________________________________________________________________________________________
             # Start at Step
@@ -3596,7 +3597,7 @@ class TSC_XYplot_Manual_XY_Entry:
                     return x
                 except ValueError:
                     print(
-                        f"\033[31mXY Plot Error:\033[0m '{value}' is not a valid Start Step.")
+                        f"\033[31mQuadmoon XY Plot Error:\033[0m '{value}' is not a valid Start Step.")
                     return None
             # __________________________________________________________________________________________________________
             # End at Step
@@ -3610,7 +3611,7 @@ class TSC_XYplot_Manual_XY_Entry:
                     return x
                 except ValueError:
                     print(
-                        f"\033[31mXY Plot Error:\033[0m '{value}' is not a valid End Step.")
+                        f"\033[31mQuadmoon XY Plot Error:\033[0m '{value}' is not a valid End Step.")
                     return None
             # __________________________________________________________________________________________________________
             # CFG Scale
@@ -3624,7 +3625,7 @@ class TSC_XYplot_Manual_XY_Entry:
                     return x
                 except ValueError:
                     print(
-                        f"\033[31mXY Plot Error:\033[0m '{value}' is not a number between {bounds['CFG Scale']['min']}"
+                        f"\033[31mQuadmoon XY Plot Error:\033[0m '{value}' is not a number between {bounds['CFG Scale']['min']}"
                         f" and {bounds['CFG Scale']['max']} for CFG Scale.")
                     return None
             # __________________________________________________________________________________________________________
@@ -3640,12 +3641,12 @@ class TSC_XYplot_Manual_XY_Entry:
                         if sampler not in bounds["Sampler"]["options"]:
                             valid_samplers = '\n'.join(bounds["Sampler"]["options"])
                             print(
-                                f"\033[31mXY Plot Error:\033[0m '{sampler}' is not a valid sampler. Valid samplers are:\n{valid_samplers}")
+                                f"\033[31mQuadmoon XY Plot Error:\033[0m '{sampler}' is not a valid sampler. Valid samplers are:\n{valid_samplers}")
                             sampler = None
                         if scheduler not in bounds["Scheduler"]["options"]:
                             valid_schedulers = '\n'.join(bounds["Scheduler"]["options"])
                             print(
-                                f"\033[31mXY Plot Error:\033[0m '{scheduler}' is not a valid scheduler. Valid schedulers are:\n{valid_schedulers}")
+                                f"\033[31mQuadmoon XY Plot Error:\033[0m '{scheduler}' is not a valid scheduler. Valid schedulers are:\n{valid_schedulers}")
                             scheduler = None
                         if sampler is None or scheduler is None:
                             return None
@@ -3653,13 +3654,13 @@ class TSC_XYplot_Manual_XY_Entry:
                             return sampler, scheduler
                     else:
                         print(
-                            f"\033[31mXY Plot Error:\033[0m '{value}' is not a valid sampler.'")
+                            f"\033[31mQuadmoon XY Plot Error:\033[0m '{value}' is not a valid sampler.'")
                         return None
                 else:
                     if value not in bounds["Sampler"]["options"]:
                         valid_samplers = '\n'.join(bounds["Sampler"]["options"])
                         print(
-                            f"\033[31mXY Plot Error:\033[0m '{value}' is not a valid sampler. Valid samplers are:\n{valid_samplers}")
+                            f"\033[31mQuadmoon XY Plot Error:\033[0m '{value}' is not a valid sampler. Valid samplers are:\n{valid_samplers}")
                         return None
                     else:
                         return value, None
@@ -3669,7 +3670,7 @@ class TSC_XYplot_Manual_XY_Entry:
                 if value not in bounds["Scheduler"]["options"]:
                     valid_schedulers = '\n'.join(bounds["Scheduler"]["options"])
                     print(
-                        f"\033[31mXY Plot Error:\033[0m '{value}' is not a valid Scheduler. Valid Schedulers are:\n{valid_schedulers}")
+                        f"\033[31mQuadmoon XY Plot Error:\033[0m '{value}' is not a valid Scheduler. Valid Schedulers are:\n{valid_schedulers}")
                     return None
                 else:
                     return value
@@ -3685,7 +3686,7 @@ class TSC_XYplot_Manual_XY_Entry:
                     return x
                 except ValueError:
                     print(
-                        f"\033[31mXY Plot Error:\033[0m '{value}' is not a number between {bounds['Denoise']['min']} "
+                        f"\033[31mQuadmoon XY Plot Error:\033[0m '{value}' is not a number between {bounds['Denoise']['min']} "
                         f"and {bounds['Denoise']['max']} for Denoise.")
                     return None
             # __________________________________________________________________________________________________________
@@ -3693,7 +3694,7 @@ class TSC_XYplot_Manual_XY_Entry:
             elif value_type == "VAE":
                 if value not in bounds["VAE"]["options"]:
                     valid_vaes = '\n'.join(bounds["VAE"]["options"])
-                    print(f"\033[31mXY Plot Error:\033[0m '{value}' is not a valid VAE. Valid VAEs are:\n{valid_vaes}")
+                    print(f"\033[31mQuadmoon XY Plot Error:\033[0m '{value}' is not a valid VAE. Valid VAEs are:\n{valid_vaes}")
                     return None
                 else:
                     return value
@@ -3709,16 +3710,16 @@ class TSC_XYplot_Manual_XY_Entry:
                         try:
                             clip_skip = int(clip_skip)  # Convert the clip_skip to integer
                         except ValueError:
-                            print(f"\033[31mXY Plot Error:\033[0m '{clip_skip}' is not a valid clip_skip. "
+                            print(f"\033[31mQuadmoon XY Plot Error:\033[0m '{clip_skip}' is not a valid clip_skip. "
                                   f"Valid clip skip values are integers between {bounds['Clip Skip']['min']} and {bounds['Clip Skip']['max']}.")
                             return None
                         if checkpoint not in bounds["Checkpoint"]["options"]:
                             valid_checkpoints = '\n'.join(bounds["Checkpoint"]["options"])
                             print(
-                                f"\033[31mXY Plot Error:\033[0m '{checkpoint}' is not a valid checkpoint. Valid checkpoints are:\n{valid_checkpoints}")
+                                f"\033[31mQuadmoon XY Plot Error:\033[0m '{checkpoint}' is not a valid checkpoint. Valid checkpoints are:\n{valid_checkpoints}")
                             checkpoint = None
                         if clip_skip < bounds["Clip Skip"]["min"] or clip_skip > bounds["Clip Skip"]["max"]:
-                            print(f"\033[31mXY Plot Error:\033[0m '{clip_skip}' is not a valid clip skip. "
+                            print(f"\033[31mQuadmoon XY Plot Error:\033[0m '{clip_skip}' is not a valid clip skip. "
                                   f"Valid clip skip values are integers between {bounds['Clip Skip']['min']} and {bounds['Clip Skip']['max']}.")
                             clip_skip = None
                         if checkpoint is None or clip_skip is None:
@@ -3727,13 +3728,13 @@ class TSC_XYplot_Manual_XY_Entry:
                             return checkpoint, clip_skip, None
                     else:
                         print(
-                            f"\033[31mXY Plot Error:\033[0m '{value}' is not a valid checkpoint.'")
+                            f"\033[31mQuadmoon XY Plot Error:\033[0m '{value}' is not a valid checkpoint.'")
                         return None
                 else:
                     if value not in bounds["Checkpoint"]["options"]:
                         valid_checkpoints = '\n'.join(bounds["Checkpoint"]["options"])
                         print(
-                            f"\033[31mXY Plot Error:\033[0m '{value}' is not a valid checkpoint. Valid checkpoints are:\n{valid_checkpoints}")
+                            f"\033[31mQuadmoon XY Plot Error:\033[0m '{value}' is not a valid checkpoint. Valid checkpoints are:\n{valid_checkpoints}")
                         return None
                     else:
                         return value, None, None
@@ -3748,7 +3749,7 @@ class TSC_XYplot_Manual_XY_Entry:
                         x = bounds["Clip Skip"]["max"]
                     return x
                 except ValueError:
-                    print(f"\033[31mXY Plot Error:\033[0m '{value}' is not a valid Clip Skip.")
+                    print(f"\033[31mQuadmoon XY Plot Error:\033[0m '{value}' is not a valid Clip Skip.")
                     return None
             # __________________________________________________________________________________________________________
             # LoRA
@@ -3761,24 +3762,24 @@ class TSC_XYplot_Manual_XY_Entry:
 
                     if lora_name not in bounds["LoRA"]["options"]:
                         valid_loras = '\n'.join(bounds["LoRA"]["options"])
-                        print(f"{error('XY Plot Error:')} '{lora_name}' is not a valid LoRA. Valid LoRAs are:\n{valid_loras}")
+                        print(f"{error('Quadmoon XY Plot Error:')} '{lora_name}' is not a valid LoRA. Valid LoRAs are:\n{valid_loras}")
                         lora_name = None
 
                     try:
                         model_str = float(model_str)
                         clip_str = float(clip_str)
                     except ValueError:
-                        print(f"{error('XY Plot Error:')} The LoRA model strength and clip strength values should be numbers"
+                        print(f"{error('Quadmoon XY Plot Error:')} The LoRA model strength and clip strength values should be numbers"
                             f" between {bounds['LoRA']['model_str']['min']} and {bounds['LoRA']['model_str']['max']}.")
                         return None
 
                     if model_str < bounds["LoRA"]["model_str"]["min"] or model_str > bounds["LoRA"]["model_str"]["max"]:
-                        print(f"{error('XY Plot Error:')} '{model_str}' is not a valid LoRA model strength value. "
+                        print(f"{error('Quadmoon XY Plot Error:')} '{model_str}' is not a valid LoRA model strength value. "
                               f"Valid lora model strength values are between {bounds['LoRA']['model_str']['min']} and {bounds['LoRA']['model_str']['max']}.")
                         model_str = None
 
                     if clip_str < bounds["LoRA"]["clip_str"]["min"] or clip_str > bounds["LoRA"]["clip_str"]["max"]:
-                        print(f"{error('XY Plot Error:')} '{clip_str}' is not a valid LoRA clip strength value. "
+                        print(f"{error('Quadmoon XY Plot Error:')} '{clip_str}' is not a valid LoRA clip strength value. "
                               f"Valid lora clip strength values are between {bounds['LoRA']['clip_str']['min']} and {bounds['LoRA']['clip_str']['max']}.")
                         clip_str = None
 
@@ -3789,7 +3790,7 @@ class TSC_XYplot_Manual_XY_Entry:
                 else:
                     if value not in bounds["LoRA"]["options"]:
                         valid_loras = '\n'.join(bounds["LoRA"]["options"])
-                        print(f"{error('XY Plot Error:')} '{value}' is not a valid LoRA. Valid LoRAs are:\n{valid_loras}")
+                        print(f"{error('Quadmoon XY Plot Error:')} '{value}' is not a valid LoRA. Valid LoRAs are:\n{valid_loras}")
                         return None
                     else:
                         return value, 1.0, 1.0
@@ -3800,7 +3801,7 @@ class TSC_XYplot_Manual_XY_Entry:
 
         # Validate plot_value array length is 1 if doing a "Seeds++ Batch"
         if len(plot_value) != 1 and plot_type == "Seeds++ Batch":
-            print(f"{error('XY Plot Error:')} '{';'.join(plot_value)}' is not a valid batch count.")
+            print(f"{error('Quadmoon XY Plot Error:')} '{';'.join(plot_value)}' is not a valid batch count.")
             return (None,)
 
         # Apply allowed shortcut syntax to certain input types
@@ -3819,7 +3820,7 @@ class TSC_XYplot_Manual_XY_Entry:
         # Prompt S/R X Cleanup
         if plot_type in {"Positive Prompt S/R", "Negative Prompt S/R"}:
             if plot_value[0] == '':
-                print(f"{error('XY Plot Error:')} Prompt S/R value can not be empty.")
+                print(f"{error('Quadmoon XY Plot Error:')} Prompt S/R value can not be empty.")
                 return (None,)
             else:
                 plot_value = [(plot_value[0], None) if i == 0 else (plot_value[0], x) for i, x in enumerate(plot_value)]
@@ -3846,8 +3847,8 @@ class TSC_XYplot_Manual_XY_Entry:
         return ((plot_type, plot_value),)
 
 #=======================================================================================================================
-# TSC XY Plot: Join Inputs
-class TSC_XYplot_JoinInputs:
+# TSC Quadmoon XY Plot: Join Inputs
+class QuadMoonTSC_KSamplerXYplot_JoinInputs:
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -3881,8 +3882,8 @@ class TSC_XYplot_JoinInputs:
         return ((xy_type, xy_value),)
 
 ########################################################################################################################
-# TSC Image Overlay
-class TSC_ImageOverlay:
+# TSC Quadmoon Image Overlay
+class QuadMoonTSC_KSamplerImageOverlay:
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -3989,7 +3990,7 @@ class TSC_ImageOverlay:
 # https://github.com/chrisgoringe/cg-noise
 
 # TSC Noise Sources & Variations Script
-class TSC_Noise_Control_Script:
+class QuadMoonTSC_KSamplerNoise_Control_Script:
 
     @classmethod
     def INPUT_TYPES(cls):
@@ -4030,18 +4031,18 @@ if os.path.exists(os.path.join(custom_nodes_dir, "comfyui_controlnet_aux")):
         print(f"\r{message('Efficiency Nodes:')} {printout}{error('Failed!')}")
 
 # TSC HighRes-Fix with model latent upscalers (https://github.com/city96/SD-Latent-Upscaler)
-class TSC_HighRes_Fix:
+class QuadMoonTSC_KSamplerHighRes_Fix:
 
     default_latent_upscalers = LatentUpscaleBy.INPUT_TYPES()["required"]["upscale_method"][0]
 
     city96_upscale_methods =\
-        ["city96." + ver for ver in city96_latent_upscaler.LatentUpscaler.INPUT_TYPES()["required"]["latent_ver"][0]]
-    city96_scalings_raw = city96_latent_upscaler.LatentUpscaler.INPUT_TYPES()["required"]["scale_factor"][0]
+        ["city96." + ver for ver in city96_latent_upscaler.QuadmoonLatentUpscaler.INPUT_TYPES()["required"]["latent_ver"][0]]
+    city96_scalings_raw = city96_latent_upscaler.QuadmoonLatentUpscaler.INPUT_TYPES()["required"]["scale_factor"][0]
     city96_scalings_float = [float(scale) for scale in city96_scalings_raw]
 
     ttl_nn_upscale_methods = \
         ["ttl_nn." + ver for ver in
-         ttl_nn_latent_upscaler.NNLatentUpscale.INPUT_TYPES()["required"]["version"][0]]
+         ttl_nn_latent_upscaler.QuadmoonNNLatentUpscale.INPUT_TYPES()["required"]["version"][0]]
 
     latent_upscalers = default_latent_upscalers + city96_upscale_methods + ttl_nn_upscale_methods
     pixel_upscalers = folder_paths.get_filename_list("upscale_models")
@@ -4093,8 +4094,8 @@ class TSC_HighRes_Fix:
                     # Remove extra characters added
                     latent_upscaler = latent_upscaler.replace("city96.", "")
 
-                    # Set function to city96_latent_upscaler.LatentUpscaler
-                    latent_upscale_function = city96_latent_upscaler.LatentUpscaler
+                    # Set function to city96_latent_upscaler.QuadmoonLatentUpscaler
+                    latent_upscale_function = city96_latent_upscaler.QuadmoonLatentUpscaler
 
                     # Find the nearest valid scaling in city96_scalings_float
                     nearest_scaling = min(self.city96_scalings_float, key=lambda x: abs(x - upscale_by))
@@ -4127,7 +4128,7 @@ class TSC_HighRes_Fix:
                               f"Rounding to the nearest valid value ({upscale_by_clamped}).\033[0m")
                     upscale_by = upscale_by_clamped
 
-                    latent_upscale_function = ttl_nn_latent_upscaler.NNLatentUpscale
+                    latent_upscale_function = ttl_nn_latent_upscaler.QuadmoonNNLatentUpscale
 
                 # For default upscale methods
                 elif latent_upscaler in self.default_latent_upscalers:
@@ -4172,7 +4173,7 @@ class TSC_HighRes_Fix:
 
 ########################################################################################################################
 # TSC Tiled Upscaler (https://github.com/BlenderNeko/ComfyUI_TiledKSampler)
-class TSC_Tiled_Upscaler:
+class QuadMoonTSC_KSamplerTiled_Upscaler:
     @classmethod
     def INPUT_TYPES(cls):
         # Split the list based on the keyword "tile"
@@ -4204,8 +4205,8 @@ class TSC_Tiled_Upscaler:
         return (script,)
 
 ########################################################################################################################
-# TSC LoRA Stack to String converter
-class TSC_LoRA_Stack2String:
+# TSC Quadmoon LoRA Stack to String converter
+class QuadMoonTSC_KSamplerLoRA_Stack2String:
     @classmethod
     def INPUT_TYPES(cls):
         return {"required": {"lora_stack": ("LORA_STACK",)}}
@@ -4226,46 +4227,46 @@ class TSC_LoRA_Stack2String:
 ########################################################################################################################
 # NODE MAPPING
 NODE_CLASS_MAPPINGS = {
-    "KSampler (Efficient)": TSC_KSampler,
-    "KSampler Adv. (Efficient)":TSC_KSamplerAdvanced,
-    "KSampler SDXL (Eff.)": TSC_KSamplerSDXL,
-    "Efficient Loader": TSC_EfficientLoader,
-    "Eff. Loader SDXL": TSC_EfficientLoaderSDXL,
-    "LoRA Stacker": TSC_LoRA_Stacker,
-    "Control Net Stacker": TSC_Control_Net_Stacker,
-    "Apply ControlNet Stack": TSC_Apply_ControlNet_Stack,
-    "Unpack SDXL Tuple": TSC_Unpack_SDXL_Tuple,
-    "Pack SDXL Tuple": TSC_Pack_SDXL_Tuple,
-    "XY Plot": TSC_XYplot,
-    "XY Input: Seeds++ Batch": TSC_XYplot_SeedsBatch,
-    "XY Input: Add/Return Noise": TSC_XYplot_AddReturnNoise,
-    "XY Input: Steps": TSC_XYplot_Steps,
-    "XY Input: CFG Scale": TSC_XYplot_CFG,
-    "XY Input: Sampler/Scheduler": TSC_XYplot_Sampler_Scheduler,
-    "XY Input: Denoise": TSC_XYplot_Denoise,
-    "XY Input: VAE": TSC_XYplot_VAE,
-    "XY Input: Prompt S/R": TSC_XYplot_PromptSR,
-    "XY Input: Aesthetic Score": TSC_XYplot_AScore,
-    "XY Input: Refiner On/Off": TSC_XYplot_Refiner_OnOff,
-    "XY Input: Checkpoint": TSC_XYplot_Checkpoint,
-    "XY Input: Clip Skip": TSC_XYplot_ClipSkip,
-    "XY Input: LoRA": TSC_XYplot_LoRA,
-    "XY Input: LoRA Plot": TSC_XYplot_LoRA_Plot,
-    "XY Input: LoRA Stacks": TSC_XYplot_LoRA_Stacks,
-    "XY Input: Control Net": TSC_XYplot_Control_Net,
-    "XY Input: Control Net Plot": TSC_XYplot_Control_Net_Plot,
-    "XY Input: Manual XY Entry": TSC_XYplot_Manual_XY_Entry,
-    "Manual XY Entry Info": TSC_XYplot_Manual_XY_Entry_Info,
-    "Join XY Inputs of Same Type": TSC_XYplot_JoinInputs,
-    "Image Overlay": TSC_ImageOverlay,
-    "Noise Control Script": TSC_Noise_Control_Script,
-    "HighRes-Fix Script": TSC_HighRes_Fix,
-    "Tiled Upscaler Script": TSC_Tiled_Upscaler,
-    "LoRA Stack to String converter": TSC_LoRA_Stack2String
+    "Quadmoon KSampler (Efficient)": qmQuadmoonTSC_KSampler,
+    "Quadmoon KSampler Adv. (Efficient)":qmQuadmoonTSC_KSamplerAdvanced,
+    "Quadmoon KSampler SDXL (Eff.)": QuadmoonTSC_KSamplerSDXL,
+    "Quadmoon Efficient Loader": QuadMoonTSC_KSamplerEfficientLoader,
+    "Quadmoon Eff. Loader SDXL": QuadMoonTSC_KSamplerEfficientLoaderSDXL,
+    "Quadmoon LoRA Stacker": QuadMoonTSC_KSamplerLoRA_Stacker,
+    "Quadmoon Control Net Stacker": QuadMoonTSC_KSamplerControl_Net_Stacker,
+    "Quadmoon Apply ControlNet Stack": QuadMoonTSC_KSamplerApply_ControlNet_Stack,
+    "Quadmoon Unpack SDXL Tuple": QuadMoonTSC_KSamplerUnpack_SDXL_Tuple,
+    "Quadmoon Pack SDXL Tuple": QuadMoonTSC_KSamplerPack_SDXL_Tuple,
+    "Quadmoon XY Plot": QuadMoonTSC_KSamplerXYplot,
+    "Quadmoon XY Input: Seeds++ Batch": QuadMoonTSC_KSamplerXYplot_SeedsBatch,
+    "Quadmoon XY Input: Add/Return Noise": QuadMoonTSC_KSamplerXYplot_AddReturnNoise,
+    "Quadmoon XY Input: Steps": QuadMoonTSC_KSamplerXYplot_Steps,
+    "Quadmoon XY Input: CFG Scale": QuadMoonTSC_KSamplerXYplot_CFG,
+    "Quadmoon XY Input: Sampler/Scheduler": QuadMoonTSC_KSamplerXYplot_Sampler_Scheduler,
+    "Quadmoon XY Input: Denoise": QuadMoonTSC_KSamplerXYplot_Denoise,
+    "Quadmoon XY Input: VAE": QuadMoonTSC_KSamplerXYplot_VAE,
+    "Quadmoon XY Input: Prompt S/R": QuadMoonTSC_KSamplerXYplot_PromptSR,
+    "Quadmoon XY Input: Aesthetic Score": QuadMoonTSC_KSamplerXYplot_AScore,
+    "Quadmoon XY Input: Refiner On/Off": QuadMoonTSC_KSamplerXYplot_Refiner_OnOff,
+    "Quadmoon XY Input: Checkpoint": QuadMoonTSC_KSamplerXYplot_Checkpoint,
+    "Quadmoon XY Input: Clip Skip": QuadMoonTSC_KSamplerXYplot_ClipSkip,
+    "Quadmoon XY Input: LoRA": QuadMoonTSC_KSamplerXYplot_LoRA,
+    "Quadmoon XY Input: LoRA Plot": QuadMoonTSC_KSamplerXYplot_LoRA_Plot,
+    "Quadmoon XY Input: LoRA Stacks": QuadMoonTSC_KSamplerXYplot_LoRA_Stacks,
+    "Quadmoon XY Input: Control Net": QuadMoonTSC_KSamplerXYplot_Control_Net,
+    "Quadmoon Quadmoon XY Input: Control Net Plot": QuadMoonTSC_KSamplerXYplot_Control_Net_Plot,
+    "Quadmoon XY Input: Manual XY Entry": QuadMoonTSC_KSamplerXYplot_Manual_XY_Entry,
+    "Quadmoon Manual XY Entry Info": QuadMoonTSC_KSamplerXYplot_Manual_XY_Entry_Info,
+    "Quadmoon Join XY Inputs of Same Type": QuadMoonTSC_KSamplerXYplot_JoinInputs,
+    "Quadmoon Image Overlay": QuadMoonTSC_KSamplerImageOverlay,
+    "Quadmoon Noise Control Script": QuadMoonTSC_KSamplerNoise_Control_Script,
+    "Quadmoon HighRes-Fix Script": QuadMoonTSC_KSamplerHighRes_Fix,
+    "Quadmoon Tiled Upscaler Script": QuadMoonTSC_KSamplerTiled_Upscaler,
+    "Quadmoon LoRA Stack to String converter": QuadMoonTSC_KSamplerLoRA_Stack2String
 }
 
 ########################################################################################################################
-# Add AnimateDiff Script based off Kosinkadink's Nodes (https://github.com/Kosinkadink/ComfyUI-AnimateDiff-Evolved) deprecated
+# Add Quadmoon AnimateDiff Script based off Kosinkadink's Nodes (https://github.com/Kosinkadink/ComfyUI-AnimateDiff-Evolved) deprecated
 """
 if os.path.exists(os.path.join(custom_nodes_dir, "ComfyUI-AnimateDiff-Evolved")):
     printout = "Attempting to add 'AnimatedDiff Script' Node (ComfyUI-AnimateDiff-Evolved add-on)..."
@@ -4277,7 +4278,7 @@ if os.path.exists(os.path.join(custom_nodes_dir, "ComfyUI-AnimateDiff-Evolved"))
         print(f"\r{message('Efficiency Nodes:')} {printout}{success('Success!')}")
 
         # TSC AnimatedDiff Script (https://github.com/BlenderNeko/ComfyUI_TiledKSampler)
-        class TSC_AnimateDiff_Script:
+        class QuadMoonTSC_KSamplerAnimateDiff_Script:
             @classmethod
             def INPUT_TYPES(cls):
 
@@ -4302,7 +4303,7 @@ if os.path.exists(os.path.join(custom_nodes_dir, "ComfyUI-AnimateDiff-Evolved"))
                 script["anim"] = (motion_model, beta_schedule, context_options, frame_rate, loop_count, format, pingpong, save_image)
                 return (script,)
 
-        NODE_CLASS_MAPPINGS.update({"AnimateDiff Script": TSC_AnimateDiff_Script})
+        NODE_CLASS_MAPPINGS.update({"Quadmoon AnimateDiff Script": QuadMoonTSC_KSamplerAnimateDiff_Script})
 
     except Exception:
         print(f"\r{message('Efficiency Nodes:')} {printout}{error('Failed!')}")
@@ -4314,7 +4315,7 @@ try:
     import simpleeval
 
     # TSC Evaluate Integers
-    class TSC_EvaluateInts:
+    class QuadMoonTSC_KSamplerEvaluateInts:
         @classmethod
         def INPUT_TYPES(cls):
             return {"required": {
@@ -4347,7 +4348,7 @@ try:
 
     # ==================================================================================================================
     # TSC Evaluate Floats
-    class TSC_EvaluateFloats:
+    class QuadMoonTSC_KSamplerEvaluateFloats:
         @classmethod
         def INPUT_TYPES(cls):
             return {"required": {
@@ -4380,7 +4381,7 @@ try:
 
     # ==================================================================================================================
     # TSC Evaluate Strings
-    class TSC_EvaluateStrs:
+    class QuadMoonTSC_KSamplerEvaluateStrs:
         @classmethod
         def INPUT_TYPES(cls):
             return {"required": {
@@ -4413,7 +4414,7 @@ try:
 
     # ==================================================================================================================
     # TSC Simple Eval Examples
-    class TSC_EvalExamples:
+    class QuadMoonTSC_KSamplerEvalExamples:
         @classmethod
         def INPUT_TYPES(cls):
             filepath = os.path.join(my_dir, 'workflows', 'SimpleEval_Node_Examples.txt')
@@ -4425,10 +4426,10 @@ try:
         CATEGORY = "Efficiency Nodes/Simple Eval"
 
     # ==================================================================================================================
-    NODE_CLASS_MAPPINGS.update({"Evaluate Integers": TSC_EvaluateInts})
-    NODE_CLASS_MAPPINGS.update({"Evaluate Floats": TSC_EvaluateFloats})
-    NODE_CLASS_MAPPINGS.update({"Evaluate Strings": TSC_EvaluateStrs})
-    NODE_CLASS_MAPPINGS.update({"Simple Eval Examples": TSC_EvalExamples})
+    NODE_CLASS_MAPPINGS.update({"Evaluate Integers": QuadMoonTSC_KSamplerEvaluateInts})
+    NODE_CLASS_MAPPINGS.update({"Evaluate Floats": QuadMoonTSC_KSamplerEvaluateFloats})
+    NODE_CLASS_MAPPINGS.update({"Evaluate Strings": QuadMoonTSC_KSamplerEvaluateStrs})
+    NODE_CLASS_MAPPINGS.update({"Simple Eval Examples": QuadMoonTSC_KSamplerEvalExamples})
 
 except ImportError:
     print(f"{warning('Efficiency Nodes Warning:')} Failed to import python package 'simpleeval'; related nodes disabled.\n")
